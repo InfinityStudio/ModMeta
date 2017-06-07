@@ -4,6 +4,7 @@ import com.jsoniter.JsonIterator;
 import com.jsoniter.ValueType;
 import com.jsoniter.any.Any;
 import net.infstudio.modmeta.forge.ForgeModASMData;
+import net.infstudio.modmeta.forge.ForgeModData;
 import net.infstudio.modmeta.forge.ForgeModMetaData;
 import net.infstudio.modmeta.forge.ModAnnotationVisitor;
 import net.infstudio.modmeta.liteloader.LiteModMetaData;
@@ -73,11 +74,43 @@ public class DefaultParser
 		}
 	}
 
+	public static ForgeModData[] parseFMLAll(InputStream jarFileStream) throws IOException
+	{
+		Objects.requireNonNull(jarFileStream);
+
+		List<ForgeModData> asmData = new ArrayList<>();
+		Set<Map<String, Object>> set = new HashSet<>();
+		ModAnnotationVisitor visitor = new ModAnnotationVisitor(set);
+
+		JarInputStream jarInputStream = jarFileStream instanceof JarInputStream ? (JarInputStream) jarFileStream : new JarInputStream(jarFileStream);
+		for (JarEntry entry = jarInputStream.getNextJarEntry(); entry != null; entry = jarInputStream.getNextJarEntry())
+			if (CLASS_FILE.matcher(entry.getName()).matches())
+				visitClass(set, asmData, visitor, jarInputStream);
+			else if (entry.getName().endsWith("mcmod.info"))
+			{
+				ByteBuffer buffer = ByteBuffer.allocate(5120);
+				ReadableByteChannel channel = Channels.newChannel(jarInputStream);
+				channel.read(buffer);
+				buffer.flip();
+				byte[] bytes = new byte[buffer.limit()];
+				buffer.get(bytes);
+				Any any = JsonIterator.deserialize(bytes);
+				if (any.get("modListVersion").valueType() != ValueType.INVALID)
+					any.get("modList").asList().stream().map(a -> a.as(ForgeModMetaData.class)).forEach
+							(asmData::add);
+				if (any.valueType() == ValueType.ARRAY)
+					any.asList().stream().map(a -> a.as(ForgeModMetaData.class)).forEach(asmData::add);
+				if (any.valueType() == ValueType.OBJECT)
+					asmData.add(any.as(ForgeModMetaData.class));
+			}
+		return asmData.toArray(new ForgeModData[asmData.size()]);
+	}
+
 	public static ForgeModASMData[] parseFMLASM(InputStream jarFileStream) throws IOException
 	{
 		Objects.requireNonNull(jarFileStream);
 
-		List<ForgeModASMData> asmData = new ArrayList<>();
+		List<ForgeModData> asmData = new ArrayList<>();
 		Set<Map<String, Object>> set = new HashSet<>();
 		ModAnnotationVisitor visitor = new ModAnnotationVisitor(set);
 
@@ -88,12 +121,11 @@ public class DefaultParser
 		return asmData.toArray(new ForgeModASMData[asmData.size()]);
 	}
 
-
 	public static ForgeModASMData[] parseFMLASM(Path jarFilePath) throws IOException
 	{
 		Objects.requireNonNull(jarFilePath);
 
-		List<ForgeModASMData> asmData = new ArrayList<>();
+		List<ForgeModData> asmData = new ArrayList<>();
 		Set<Map<String, Object>> set = new HashSet<>();
 		ModAnnotationVisitor visitor = new ModAnnotationVisitor(set);
 
@@ -182,7 +214,7 @@ public class DefaultParser
 	}
 
 	private static void visitClass(Set<Map<String, Object>> set,
-								   List<ForgeModASMData> asmData,
+								   List<ForgeModData> asmData,
 								   ModAnnotationVisitor visitor,
 								   InputStream stream) throws IOException
 	{

@@ -3,7 +3,7 @@ package net.infstudio.modmeta.forge;
 /**
  * @author ci010
  */
-public class ForgeModASMData
+public class ForgeModASMData implements ForgeModData
 {
 	private String
 			modid = "",

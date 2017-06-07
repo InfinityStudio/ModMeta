@@ -2,6 +2,7 @@ package net.infstudio.modmeta;
 
 import com.jsoniter.JsonIterator;
 import net.infstudio.modmeta.forge.ForgeModASMData;
+import net.infstudio.modmeta.forge.ForgeModData;
 import net.infstudio.modmeta.forge.ForgeModMetaData;
 import net.infstudio.modmeta.liteloader.LiteModMetaData;
 import org.junit.Test;
@@ -56,6 +57,15 @@ public class DefaultParserTest
 		Path path = Paths.get(resource.toURI());
 		LiteModMetaData json = DefaultParser.parseLiteJson(path);
 		System.out.println(json);
+	}
+
+	@Test
+	public void testAll() throws Exception
+	{
+		InputStream resource = DefaultParserTest.class.getResourceAsStream("/journeymap-1.11-5.4.6.jar");
+		ForgeModData[] data = DefaultParser.parseFMLAll(resource);
+		System.out.println(Arrays.toString(data));
+		resource.close();
 	}
 
 	@Test

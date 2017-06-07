@@ -6,7 +6,7 @@ import java.util.Arrays;
 /**
  * @author ci010
  */
-public class ForgeModMetaData
+public class ForgeModMetaData implements ForgeModData
 {
 	private String modid = "",
 			name = "",
@@ -24,11 +24,13 @@ public class ForgeModMetaData
 	private String[] screenshots = new String[0],
 			authorList = new String[0];
 
+	@Override
 	public String getModid()
 	{
 		return modid;
 	}
 
+	@Override
 	public String getName()
 	{
 		return name;
@@ -59,6 +61,7 @@ public class ForgeModMetaData
 		return logoFile;
 	}
 
+	@Override
 	public String getVersion()
 	{
 		return version;
