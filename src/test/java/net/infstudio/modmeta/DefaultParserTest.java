@@ -7,6 +7,7 @@ import net.infstudio.modmeta.liteloader.LiteModMetaData;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -53,8 +54,25 @@ public class DefaultParserTest
 	{
 		URL resource = DefaultParserTest.class.getResource("/betteranimationscollectionrevived2.litemod");
 		Path path = Paths.get(resource.toURI());
-		LiteModMetaData[] json = DefaultParser.parseLiteJson(path);
-		System.out.println(Arrays.toString(json));
+		LiteModMetaData json = DefaultParser.parseLiteJson(path);
+		System.out.println(json);
 	}
 
+	@Test
+	public void testStream() throws Exception
+	{
+		InputStream resource = DefaultParserTest.class.getResourceAsStream("/journeymap-1.11-5.4.6.jar");
+		ForgeModASMData[] data = DefaultParser.parseFMLASM(resource);
+		System.out.println(Arrays.toString(data));
+		resource.close();
+
+		resource = DefaultParserTest.class.getResourceAsStream("/FTBLib-1.10.2-3.5.3.jar");
+		ForgeModMetaData[] metaData = DefaultParser.parseFMLInfoJson(resource);
+		System.out.println(Arrays.toString(metaData));
+
+
+		resource = DefaultParserTest.class.getResourceAsStream("/betteranimationscollectionrevived2.litemod");
+		LiteModMetaData liteModMetaData = DefaultParser.parseLiteJson(resource);
+		System.out.println(liteModMetaData);
+	}
 }
